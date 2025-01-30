@@ -1,8 +1,18 @@
+import os
 from transformers import pipeline
+from dotenv import load_dotenv
+
+load_dotenv()
+
+TOKEN = os.getenv('ACCESS_TOKEN')
+
+# model_name="HuggingFaceH4/zephyr-7b-beta"
+# model_name= "mistralai/Mistral-7B-Instruct-v0.3"
+model_name="meta-llama/Llama-3.2-1B-Instruct"
 
 
 def generate_text():
-    pipe = pipeline("text-generation", "HuggingFaceH4/zephyr-7b-beta", device="cpu")
+    pipe = pipeline("text-generation", model_name, device="cuda", token=TOKEN)
     messages = [
         {
             "role": "system",

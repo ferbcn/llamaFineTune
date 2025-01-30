@@ -48,3 +48,4 @@ Werkzeug==3.0.4
 xxhash==3.5.0
 yarl==1.15.4
 torch
+python-dotenv
