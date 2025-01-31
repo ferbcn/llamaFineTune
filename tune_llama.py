@@ -1,6 +1,10 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from datasets import load_dataset
+torch.cuda.empty_cache()
+
+import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 # Load the base model and tokenizer
 model_id = "meta-llama/Llama-3.2-1B-Instruct"
