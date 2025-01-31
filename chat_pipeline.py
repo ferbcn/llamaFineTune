@@ -25,7 +25,7 @@ def generate_text(prompt):
         # Load model and tokenizer with the same configuration as fine-tuning
         model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            torch_dtype=torch.float32,  # Match the fine-tuning dtype
+            torch_dtype=torch.float16,  # Match the fine-tuning dtype
             device_map="auto"
         )
         tokenizer = AutoTokenizer.from_pretrained(model_name)
