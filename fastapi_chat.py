@@ -22,7 +22,7 @@ model_name = "meta-llama/Llama-3.2-1B-Instruct"
 
 
 def generate_text(prompt):
-    pipe = pipeline("text-generation", model_name, device="cpu", token=TOKEN)
+    pipe = pipeline("text-generation", model_name, device="cuda", token=TOKEN)
     messages = [
         {
             "role": "system",
