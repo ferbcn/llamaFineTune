@@ -9,7 +9,7 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 # Load the base model and tokenizer
 model_id = "meta-llama/Llama-3.2-1B-Instruct"
-model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16, device_map="auto") # Must be float32 for MacBooks!
+model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float32, device_map="auto") # Must be float32 for MacBooks!
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 tokenizer.pad_token = tokenizer.eos_token
 
@@ -56,7 +56,7 @@ training_args = TrainingArguments(
     per_device_train_batch_size=4, # Adjust based on your hardware
     per_device_eval_batch_size=4,
     num_train_epochs=4, # How many times to loop through the dataset
-    fp16=True, # Must be False for MacBooks
+    fp16=False, # Must be False for MacBooks
     report_to="none", # Here we can use something like tensorboard to see the training metrics
     log_level="info",
     learning_rate=1e-6, # Would avoid larger values here
