@@ -14,8 +14,8 @@ tokenizer = AutoTokenizer.from_pretrained(model_id)
 tokenizer.pad_token = tokenizer.eos_token
 
 # Load the training dataset
-# dataset = load_dataset("csv", data_files="data/synthetic_nonsense200.csv", split="train")
-dataset = load_dataset("csv", data_files="data/sarcasm.csv", split="train")
+# dataset = load_dataset("csv", data_files="data/sarcasm.csv", split="train")
+dataset = load_dataset("csv", data_files="data/synthetic_nonsense200.csv", split="train")
 
 # Define a function to apply the chat template
 def apply_chat_template(example):
@@ -55,7 +55,7 @@ training_args = TrainingArguments(
     save_steps=150,
     per_device_train_batch_size=4, # Adjust based on your hardware
     per_device_eval_batch_size=4,
-    num_train_epochs=2, # How many times to loop through the dataset
+    num_train_epochs=8, # How many times to loop through the dataset
     fp16=False, # Must be False for MacBooks
     report_to="none", # Here we can use something like tensorboard to see the training metrics
     log_level="info",
