@@ -6,6 +6,8 @@ import sys
 load_dotenv()
 
 TOKEN = os.getenv('ACCESS_TOKEN')
+os.environ["CUDA_LAUNCH_BLOCKING"] = 1
+
 
 # model_name = "HuggingFaceH4/zephyr-7b-beta"
 # model_name = "mistralai/Mistral-7B-Instruct-v0.3"
