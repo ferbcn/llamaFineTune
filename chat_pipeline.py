@@ -3,7 +3,6 @@ from transformers import pipeline
 from dotenv import load_dotenv
 import sys
 
-
 load_dotenv()
 
 TOKEN = os.getenv('ACCESS_TOKEN')
@@ -18,11 +17,13 @@ def generate_text(prompt):
     messages = [
         {
             "role": "system",
-            "content": "You are a friendly chatbot who always responds in the style of a pirate",
+#            "content": "You are a friendly chatbot who always responds in the style of a pirate",
+            "content": "You are a friendly chatbot who always responds in the style of scientist",
+
         },
         {"role": "user", "content": prompt},
     ]
-    print(pipe(messages, max_new_tokens=128)[0]['generated_text'][-1])  # Print the assistant's response
+    print(pipe(messages, max_new_tokens=512)[0]['generated_text'][-1])  # Print the assistant's response
 
 
 # Press the green button in the gutter to run the script.
