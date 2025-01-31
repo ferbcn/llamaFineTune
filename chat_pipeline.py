@@ -6,7 +6,7 @@ import sys
 load_dotenv()
 
 TOKEN = os.getenv('ACCESS_TOKEN')
-os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
+# os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 
 
 # model_name = "HuggingFaceH4/zephyr-7b-beta"
