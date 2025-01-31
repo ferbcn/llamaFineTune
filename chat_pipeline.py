@@ -10,7 +10,7 @@ TOKEN = os.getenv('ACCESS_TOKEN')
 # model_name = "HuggingFaceH4/zephyr-7b-beta"
 # model_name = "mistralai/Mistral-7B-Instruct-v0.3"
 # model_name = "meta-llama/Llama-3.2-1B-Instruct"
-model_name = "fine-tune-model"
+model_name = "fine-tuned-model"
 
 
 def generate_text(prompt):
