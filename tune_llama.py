@@ -52,13 +52,13 @@ training_args = TrainingArguments(
     eval_steps=40,
     logging_steps=40,
     save_steps=150,
-    per_device_train_batch_size=2, # Adjust based on your hardware
-    per_device_eval_batch_size=2,
+    per_device_train_batch_size=4, # Adjust based on your hardware
+    per_device_eval_batch_size=4,
     num_train_epochs=2, # How many times to loop through the dataset
     fp16=False, # Must be False for MacBooks
     report_to="none", # Here we can use something like tensorboard to see the training metrics
     log_level="info",
-    learning_rate=1e-5, # Would avoid larger values here
+    learning_rate=1e-6, # Would avoid larger values here
     max_grad_norm=2 # Clipping the gradients is always a good idea
 )
 
