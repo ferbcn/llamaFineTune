@@ -26,7 +26,7 @@ def generate_text(prompt):
         },
         {"role": "user", "content": prompt},
     ]
-    print(pipe(messages, max_new_tokens=128)[0]['generated_text'][-1])  # Print the assistant's response
+    print(pipe(messages, max_new_tokens=512)[0]['generated_text'][-1])  # Print the assistant's response
 
 
 # Press the green button in the gutter to run the script.
