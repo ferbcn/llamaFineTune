@@ -31,7 +31,7 @@ def generate_text(prompt):
         },
         {"role": "user", "content": prompt},
     ]
-    response = pipe(messages, max_new_tokens=256)[0]['generated_text'][-1]  # Print the assistant's response
+    response = pipe(messages, max_new_tokens=512)[0]['generated_text'][-1]  # Print the assistant's response
     print(response)
     return response
 
