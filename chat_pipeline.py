@@ -1,5 +1,5 @@
 import os
-from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from dotenv import load_dotenv
 import sys
 import torch
@@ -19,52 +19,62 @@ model_name = "fine-tuned-model"
 
 def generate_text(prompt):
     try:
-        # Clear CUDA cache before loading model
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-        # Load model and tokenizer separately for more control
+        # Load model and tokenizer with the same configuration as fine-tuning
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.float32,  # Match the fine-tuning dtype
+            device_map="auto"
+        )
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForCausalLM.from_pretrained(model_name)
-        
-        if torch.cuda.is_available():
-            model = model.to("cuda")
+        tokenizer.pad_token = tokenizer.eos_token
 
-        # Create pipeline with specific parameters to handle probability issues
-        pipe = pipeline(
-            "text-generation",
-            model=model,
-            tokenizer=tokenizer,
-            device="cuda" if torch.cuda.is_available() else "cpu",
-            token=TOKEN,
-            temperature=0.7,  # Lower temperature for more stable outputs
-            top_p=0.9,       # Nucleus sampling parameter
-            top_k=50,        # Top-k sampling parameter
-            pad_token_id=tokenizer.eos_token_id,
+        # Prepare the input in the same format as training data
+        messages = [
+            {"role": "user", "content": prompt}
+        ]
+        
+        # Apply the same chat template as used in training
+        full_prompt = tokenizer.apply_chat_template(
+            messages, 
+            tokenize=False, 
+            add_generation_prompt=True
+        )
+
+        # Tokenize input
+        inputs = tokenizer(
+            full_prompt,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=128  # Same as training
+        )
+
+        # Move inputs to the same device as model
+        inputs = {k: v.to(model.device) for k, v in inputs.items()}
+
+        # Generate
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=128,
+            do_sample=True,
+            temperature=0.7,
+            top_p=0.9,
+            top_k=50,
+            no_repeat_ngram_size=2,
+            repetition_penalty=1.2,
+            pad_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.eos_token_id,
         )
-        
-        try:
-            # Use plain text format as it's more likely to work with fine-tuned models
-            system_prompt = "You are a friendly chatbot who always responds in the style of scientist. "
-            full_prompt = system_prompt + prompt
-            
-            output = pipe(
-                full_prompt,
-                max_new_tokens=128,
-                do_sample=True,
-                num_return_sequences=1,
-                no_repeat_ngram_size=2,
-                repetition_penalty=1.2
-            )
 
-            print(output[0]['generated_text'])
-
-        except Exception as inner_error:
-            print(f"Error during text generation: {str(inner_error)}")
+        # Decode and print the response
+        generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        print(generated_text)
 
     except Exception as e:
-        print(f"Error setting up the model: {str(e)}")
+        print(f"Error: {str(e)}")
         print("Try reducing the input size or checking if the model files are correctly loaded")
 
 
