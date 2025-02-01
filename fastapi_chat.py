@@ -22,18 +22,47 @@ model_name = "meta-llama/Llama-3.2-1B-Instruct"
 
 
 def generate_text(prompt):
-    pipe = pipeline("text-generation", model_name, device="cuda", token=TOKEN)
+    from transformers import TextIteratorStreamer
+    from threading import Thread
+    
+    # Configure pipeline with streaming options
+    pipe = pipeline(
+        "text-generation",
+        model_name,
+        device="cpu",
+        token=TOKEN,
+        use_cache=False,  # Disable caching for true streaming
+        return_full_text=False  # Only return new tokens
+    )
+    streamer = TextIteratorStreamer(
+        pipe.tokenizer,
+        skip_prompt=True,  # Skip the input prompt in the output
+        skip_special_tokens=True  # Skip special tokens like EOS
+    )
+    
     messages = [
         {
             "role": "system",
             "content": "You are a friendly chatbot that gives good answers",
-
         },
         {"role": "user", "content": prompt},
     ]
-    response = pipe(messages, max_new_tokens=512)[0]['generated_text'][-1]  # Print the assistant's response
-    print(response)
-    return response
+    
+    # Run generation in a separate thread to enable streaming
+    generation_kwargs = dict(
+        text_inputs=messages,
+        max_new_tokens=512,
+        streamer=streamer,
+        do_sample=True,  # Enable sampling
+        temperature=0.7,  # Add some randomness to responses
+        top_p=0.95  # Nucleus sampling
+    )
+    thread = Thread(target=pipe, kwargs=generation_kwargs)
+    thread.start()
+    
+    # Yield tokens as they become available
+    for new_text in streamer:
+        yield new_text
 
 
 app = FastAPI()
@@ -56,41 +85,26 @@ async def websocket_endpoint(websocket: WebSocket):
 
     try:
         await websocket.accept()
-
         active_connections[connection_id] = websocket
-
-        # Log connection for debugging
         print(f"Client connected: {connection_id}")
 
         while True:
-            # Wait for messages from the client
             data = await websocket.receive_text()
-
-            # Parse the input message
             message = json.loads(data)
             user_input = message.get("message", "")
 
-            # Send initial message
             await websocket.send_text(json.dumps({
                 "type": "start",
                 "content": f"<div>Processing: {user_input}</div>"
             }))
 
-            # # Stream the response
-            # async for word in generate_text(user_input):
-            #     await websocket.send_text(json.dumps({
-            #         "type": "chunk",
-            #         "content": word
-            #     }))
-
-            # return response
-            for word in generate_text(user_input)['content']:
+            # Stream tokens directly from the generator
+            for token in generate_text(user_input):
                 await websocket.send_text(json.dumps({
                     "type": "chunk",
-                    "content": word
+                    "content": token
                 }))
 
-            # Send completion message
             await websocket.send_text(json.dumps({
                 "type": "end",
                 "content": ""
@@ -99,7 +113,6 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         print(f"Client disconnected: {connection_id}")
     finally:
-        # Clean up connection
         if connection_id in active_connections:
             del active_connections[connection_id]
 

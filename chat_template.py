@@ -1,9 +1,11 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-checkpoint = "HuggingFaceH4/zephyr-7b-beta"
+# checkpoint = "HuggingFaceH4/zephyr-7b-beta"
+# checkpoint = "fine-tuned-model"
+checkpoint = "meta-llama/Llama-3.2-1B-Instruct"
+
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 model = AutoModelForCausalLM.from_pretrained(checkpoint)  # You may want to use bfloat16 and/or move to GPU here
-
 messages = [
     {
         "role": "system",

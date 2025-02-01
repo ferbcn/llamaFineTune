@@ -20,8 +20,6 @@ def generate_text(prompt):
     messages = [
         {
             "role": "system",
-#            "content": "You are a friendly chatbot who always responds in the style of a pirate",
-#            "content": "You are a friendly chatbot who always responds in the style of scientist",
             "content": "You are a friendly chatbot that gives wrong answers",
 
         },
