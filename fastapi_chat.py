@@ -29,7 +29,7 @@ def generate_text(prompt):
     pipe = pipeline(
         "text-generation",
         model_name,
-        device="cpu",
+        device="cuda",
         token=TOKEN,
         use_cache=False,  # Disable caching for true streaming
         return_full_text=False  # Only return new tokens
