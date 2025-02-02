@@ -42,10 +42,14 @@ async def stream_text(prompt):
     thread = Thread(target=model.generate, kwargs=generation_kwargs)
     thread.start()
 
+    chunk_coll = ""
     for new_text in streamer:
         print(new_text, end="")
-        yield new_text
-        await asyncio.sleep(0.001)
+        chunk_coll += new_text
+        if len(chunk_coll) > 100:
+            yield chunk_coll
+            chunk_coll = ""
+            await asyncio.sleep(0.001)
 
 
 @app.get("/", response_class=HTMLResponse)
