@@ -2,6 +2,7 @@ import asyncio
 import os
 from threading import Thread
 
+import torch
 import uvicorn
 from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
 from dotenv import load_dotenv
@@ -29,7 +30,11 @@ async def stream_text(prompt):
     model = AutoModelForCausalLM.from_pretrained(model_name)
     inputs = tok([prompt], return_tensors="pt")
 
-    inputs["input_ids"] = inputs["input_ids"]
+    if torch.cuda.is_available():
+        inputs["input_ids"] = inputs["input_ids"].to("cuda")
+    else:
+        inputs["input_ids"] = inputs["input_ids"]
+
     streamer = TextIteratorStreamer(tok, skip_prompt=True)
     generation_kwargs = dict(inputs, streamer=streamer, max_new_tokens=512)
     thread = Thread(target=model.generate, kwargs=generation_kwargs)
@@ -38,7 +43,7 @@ async def stream_text(prompt):
     for new_text in streamer:
         print(new_text, end="")
         yield new_text
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(0.001)
 
 
 @app.get("/", response_class=HTMLResponse)
