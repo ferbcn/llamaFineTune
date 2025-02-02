@@ -26,9 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 
-            currentResponse = document.createElement('div');
-            currentResponse.className = 'message bot-message';
-            messagesDiv.appendChild(currentResponse);
+            let currentResponse = null;  // Move declaration outside and initialize as null
 
             while (true) {
                 const {value, done} = await reader.read();
@@ -36,6 +34,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const chunk = decoder.decode(value);
                 console.log(chunk);
+
+                // Create response div on first chunk
+                if (!currentResponse) {
+                    currentResponse = document.createElement('div');
+                    currentResponse.className = 'message bot-message';
+                    messagesDiv.appendChild(currentResponse);
+                }
 
                 const chunkDiv = document.createElement("span");
 

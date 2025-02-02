@@ -45,7 +45,6 @@ def stream_text(prompt):
     thread.start()
 
     big_chunk = ""
-    tag_on = False
     for new_text in streamer:
         # Check if the current token is the EOT token
         if any(token == eot_token_id for token in tok(new_text)['input_ids']):
@@ -54,13 +53,10 @@ def stream_text(prompt):
                 yield big_chunk
             break
 
-        if "**" in new_text:
-            tag_on = not tag_on
-
         # add tokens to big_chunk
         print(new_text, end="")
         big_chunk += new_text
-        if len(big_chunk) > 200 and not tag_on:
+        if len(big_chunk) > 200 and "\n" in new_text:
             yield big_chunk
             big_chunk = ""
 
