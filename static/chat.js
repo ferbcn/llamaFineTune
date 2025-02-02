@@ -3,6 +3,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const messagesDiv = document.getElementById('messages');
     const messageForm = document.getElementById('message-form');
     const messageInput = document.getElementById('message-input');
+    const modelSelector = document.getElementById('model-selector');
+
+    // Fetch available models when page loads
+    async function loadModels() {
+        try {
+            const response = await fetch('/get-models');
+            const models = await response.json();
+            
+            // Clear loading option
+            modelSelector.innerHTML = '';
+            
+            // Add options for each model
+            Object.entries(models).forEach(([key, value]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = key;
+                modelSelector.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading models:', error);
+            modelSelector.innerHTML = '<option value="">Error loading models</option>';
+        }
+    }
+
+    // Load models when page loads
+    loadModels();
 
     async function sendMessage(message) {
         // Get or create message container
@@ -14,13 +40,16 @@ document.addEventListener('DOMContentLoaded', function() {
         chatContainer.appendChild(responseDiv);
 
         try {
-            // Create EventSource for SSE connection
+            // Modified fetch call to include selected model
             const response = await fetch('/stream', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({message})
+                body: JSON.stringify({
+                    message,
+                    model: modelSelector.value
+                })
             });
 
             const reader = response.body.getReader();

@@ -21,11 +21,14 @@ TOKEN = os.getenv('ACCESS_TOKEN')
 # model_name = "fine-tuned-model"
 model_name = "meta-llama/Llama-3.2-1B-Instruct"
 
+models = {"llama3.2": "meta-llama/Llama-3.2-1B-Instruct", "llama3.2-tuned":"fine-tuned-model"}
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-def stream_text(prompt):
+def stream_text(prompt, model_name):
+    print("Streaming text for model:", model_name)
     tok = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
 
@@ -67,11 +70,17 @@ async def root():
         return f.read()
 
 
+@app.get("/get-models")
+async def get_models():
+    return models
+
+
 @app.post("/stream")
 async def generate(request: Request):
     data = await request.json()
     user_input = data.get("message", "")
-    stream_response = stream_text(user_input)
+    selected_model = data.get("model", model_name)  # Use default if not specified
+    stream_response = stream_text(user_input, selected_model)
     return StreamingResponse(stream_response, media_type="text/plain")
 
 
