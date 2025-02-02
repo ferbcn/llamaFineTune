@@ -1,34 +1,27 @@
 import asyncio
 import os
-import random
 from threading import Thread
 
-import torch
 import uvicorn
-from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, TextStreamer, TextIteratorStreamer
+from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
 from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
-from typing import Dict, AsyncGenerator
 import json
-
 
 load_dotenv()
 
 TOKEN = os.getenv('ACCESS_TOKEN')
+
 # os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
-
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Store active websocket connections
-active_connections: Dict[str, WebSocket] = {}
-
 # model_name = "HuggingFaceH4/zephyr-7b-beta"
 # model_name = "mistralai/Mistral-7B-Instruct-v0.3"
 # model_name = "fine-tuned-model"
 model_name = "meta-llama/Llama-3.2-1B-Instruct"
+
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 async def stream_text(prompt):
