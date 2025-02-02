@@ -6,12 +6,7 @@ import sys
 load_dotenv()
 
 TOKEN = os.getenv('ACCESS_TOKEN')
-# os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 
-
-# model_name = "HuggingFaceH4/zephyr-7b-beta"
-# model_name = "mistralai/Mistral-7B-Instruct-v0.3"
-# model_name = "meta-llama/Llama-3.2-1B-Instruct"
 model_name = "fine-tuned-model"
 
 
@@ -20,8 +15,7 @@ def generate_text(prompt):
     messages = [
         {
             "role": "system",
-#            "content": "You are a friendly chatbot who always responds in the style of a pirate",
-            "content": "You are a friendly chatbot that gives wrong answers",
+            "content": "You are a friendly chatbot that gives answers",
 
         },
         {"role": "user", "content": prompt},

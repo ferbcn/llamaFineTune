@@ -1,11 +1,16 @@
+import asyncio
 import os
+import random
+from threading import Thread
+
+import torch
 import uvicorn
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, TextStreamer, TextIteratorStreamer
 from dotenv import load_dotenv
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi.responses import HTMLResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
-from typing import Dict
+from typing import Dict, AsyncGenerator
 import json
 
 
@@ -14,6 +19,11 @@ load_dotenv()
 TOKEN = os.getenv('ACCESS_TOKEN')
 # os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Store active websocket connections
+active_connections: Dict[str, WebSocket] = {}
 
 # model_name = "HuggingFaceH4/zephyr-7b-beta"
 # model_name = "mistralai/Mistral-7B-Instruct-v0.3"
@@ -21,55 +31,21 @@ TOKEN = os.getenv('ACCESS_TOKEN')
 model_name = "meta-llama/Llama-3.2-1B-Instruct"
 
 
-def generate_text(prompt):
-    from transformers import TextIteratorStreamer
-    from threading import Thread
-    
-    # Configure pipeline with streaming options
-    pipe = pipeline(
-        "text-generation",
-        model_name,
-        device="cuda",
-        token=TOKEN,
-        use_cache=False,  # Disable caching for true streaming
-        return_full_text=False  # Only return new tokens
-    )
-    streamer = TextIteratorStreamer(
-        pipe.tokenizer,
-        skip_prompt=True,  # Skip the input prompt in the output
-        skip_special_tokens=True  # Skip special tokens like EOS
-    )
-    
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a friendly chatbot that gives good answers",
-        },
-        {"role": "user", "content": prompt},
-    ]
-    
-    # Run generation in a separate thread to enable streaming
-    generation_kwargs = dict(
-        text_inputs=messages,
-        max_new_tokens=512,
-        streamer=streamer,
-        do_sample=True,  # Enable sampling
-        temperature=0.7,  # Add some randomness to responses
-        top_p=0.95  # Nucleus sampling
-    )
-    thread = Thread(target=pipe, kwargs=generation_kwargs)
+async def stream_text(prompt):
+    tok = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    inputs = tok([prompt], return_tensors="pt")
+
+    inputs["input_ids"] = inputs["input_ids"]
+    streamer = TextIteratorStreamer(tok, skip_prompt=True)
+    generation_kwargs = dict(inputs, streamer=streamer, max_new_tokens=512)
+    thread = Thread(target=model.generate, kwargs=generation_kwargs)
     thread.start()
-    
-    # Yield tokens as they become available
+
     for new_text in streamer:
+        print(new_text, end="")
         yield new_text
-
-
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Store active websocket connections
-active_connections: Dict[str, WebSocket] = {}
+        await asyncio.sleep(0.01)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -78,45 +54,37 @@ async def root():
         return f.read()
 
 
-@app.websocket("/ws-chat")
-async def websocket_endpoint(websocket: WebSocket):
-    # Generate a unique ID for this connection
-    connection_id = str(id(websocket))
+@app.post("/stream")
+async def stream(request: Request):
+    data = await request.json()
+    user_input = data.get("message", "")
 
-    try:
-        await websocket.accept()
-        active_connections[connection_id] = websocket
-        print(f"Client connected: {connection_id}")
+    async def event_generator():
+        yield "data: " + json.dumps({
+            "type": "start",
+            "content": f"Processing: {user_input}"
+        }) + "\n\n"
+        
+        async for token in stream_text(user_input):
+            yield "data: " + json.dumps({
+                "type": "chunk",
+                "content": token
+            }) + "\n\n"
 
-        while True:
-            data = await websocket.receive_text()
-            message = json.loads(data)
-            user_input = message.get("message", "")
+        yield "data: " + json.dumps({
+            "type": "end",
+            "content": ""
+        }) + "\n\n"
 
-            await websocket.send_text(json.dumps({
-                "type": "start",
-                "content": f"<div>Processing: {user_input}</div>"
-            }))
-
-            # Stream tokens directly from the generator
-            for token in generate_text(user_input):
-                await websocket.send_text(json.dumps({
-                    "type": "chunk",
-                    "content": token
-                }))
-
-            await websocket.send_text(json.dumps({
-                "type": "end",
-                "content": ""
-            }))
-
-    except WebSocketDisconnect:
-        print(f"Client disconnected: {connection_id}")
-    finally:
-        if connection_id in active_connections:
-            del active_connections[connection_id]
-
-
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no'  # Disable buffering in Nginx
+        }
+    )
 
 
 if __name__ == '__main__':
