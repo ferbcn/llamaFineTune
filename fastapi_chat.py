@@ -41,7 +41,7 @@ def stream_text(prompt):
     inputs = {k: v.to(device) for k, v in inputs.items()}
 
     streamer = TextIteratorStreamer(tok, skip_prompt=True)
-    generation_kwargs = dict(inputs, streamer=streamer, max_new_tokens=512)
+    generation_kwargs = dict(inputs, streamer=streamer, max_new_tokens=1024)
     thread = Thread(target=model.generate, kwargs=generation_kwargs)
     thread.start()
 
@@ -61,7 +61,7 @@ def stream_text(prompt):
         # add tokens to big_chunk
         print(new_text, end="")
         big_chunk += new_text
-        if len(big_chunk) > 100 and not tag_on:
+        if len(big_chunk) > 200 and not tag_on:
             yield big_chunk
             big_chunk = ""
 
