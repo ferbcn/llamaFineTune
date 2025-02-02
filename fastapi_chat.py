@@ -35,7 +35,6 @@ def stream_text(prompt):
     # Move model to GPU if available
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = model.to(device)
-    
     inputs = tok([prompt], return_tensors="pt")
     # Move all input tensors to the same device as the model
     inputs = {k: v.to(device) for k, v in inputs.items()}

@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Bold: **text**
                 let formattedChunk = chunk.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
                 
+                // Convert newlines to <br> tags
+                formattedChunk = formattedChunk.replace(/\n/g, '<br>');
+                
                 // Use innerHTML instead of textContent to render HTML tags
                 chunkDiv.innerHTML = formattedChunk;
                 currentResponse.appendChild(chunkDiv);
@@ -63,7 +66,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create user message element
             const userDiv = document.createElement('div');
             userDiv.className = 'message user-message';
-            userDiv.textContent = message;
+            // Convert newlines to <br> tags for user messages too
+            userDiv.innerHTML = message.replace(/\n/g, '<br>');
             messagesDiv.appendChild(userDiv);
 
             // Send message and handle response
