@@ -28,7 +28,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def stream_text(prompt):
     tok = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
-    
+
+    # Get the EOT token ID if it exists in the tokenizer
+    eot_token_id = tok.eos_token_id
+
     # Move model to GPU if available
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = model.to(device)
@@ -44,6 +47,13 @@ async def stream_text(prompt):
 
     chunk_coll = ""
     for new_text in streamer:
+        # Check if the current token is the EOT token
+        if any(token == eot_token_id for token in tok(new_text)['input_ids']):
+            print("EOT token detected!")
+            if chunk_coll:  # Yield any remaining text before EOT
+                yield chunk_coll
+            break
+        # add tokens to big_chunk
         print(new_text, end="")
         chunk_coll += new_text
         if len(chunk_coll) > 100:
@@ -56,6 +66,14 @@ async def stream_text(prompt):
 async def root():
     with open("static/chat.html") as f:
         return f.read()
+
+
+# @app.post("/stream")
+# async def generate(request: Request):
+#     data = await request.json()
+#     user_input = data.get("message", "")
+#     stream_response = stream_text(user_input)
+#     return StreamingResponse(stream_response, media_type="text/plain")
 
 
 @app.post("/stream")
