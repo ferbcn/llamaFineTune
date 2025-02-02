@@ -40,8 +40,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const chunkDiv = document.createElement("span");
 
                 // Handle Markdown-style formatting
-                // Bold: **text**
-                let formattedChunk = chunk.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+                // Order matters: handle triple before double before single
+                let formattedChunk = chunk
+                    // Bold-italic: ***text***
+                    .replace(/\*\*\*([^\*]+)\*\*\*/g, '<strong><em>$1</em></strong>')
+                    // Bold: **text**
+                    .replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>')
+                    // Italic: *text*
+                    .replace(/\*([^\*]+)\*/g, '<em>$1</em>');
                 
                 // Convert newlines to <br> tags
                 formattedChunk = formattedChunk.replace(/\n/g, '<br>');
