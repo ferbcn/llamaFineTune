@@ -28,12 +28,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def stream_text(prompt):
     tok = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
+    
+    # Move model to GPU if available
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = model.to(device)
+    
     inputs = tok([prompt], return_tensors="pt")
-
-    if torch.cuda.is_available():
-        inputs["input_ids"] = inputs["input_ids"].to("cuda")
-    else:
-        inputs["input_ids"] = inputs["input_ids"]
+    # Move all input tensors to the same device as the model
+    inputs = {k: v.to(device) for k, v in inputs.items()}
 
     streamer = TextIteratorStreamer(tok, skip_prompt=True)
     generation_kwargs = dict(inputs, streamer=streamer, max_new_tokens=512)
