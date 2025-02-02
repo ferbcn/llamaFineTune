@@ -35,11 +35,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (done) break;
 
                 const chunk = decoder.decode(value);
-                // console.log(chunk);
-                const chunkDiv = document.createElement("span");
-                chunkDiv.textContent = chunk;
-                currentResponse.appendChild(chunkDiv);
+                console.log(chunk);
 
+                const chunkDiv = document.createElement("span");
+
+                // Handle Markdown-style formatting
+                // Bold: **text**
+                let formattedChunk = chunk.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+                
+                // Use innerHTML instead of textContent to render HTML tags
+                chunkDiv.innerHTML = formattedChunk;
+                currentResponse.appendChild(chunkDiv);
+                
+                // Trigger MathJax to process the new content
+                if (typeof MathJax !== 'undefined') {
+                    MathJax.typesetPromise([currentResponse]);
+                }
             }
         } catch (error) {
             console.error('Error:', error);
