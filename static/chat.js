@@ -26,34 +26,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 
+            currentResponse = document.createElement('div');
+            currentResponse.className = 'message bot-message';
+            messagesDiv.appendChild(currentResponse);
+
             while (true) {
                 const {value, done} = await reader.read();
                 if (done) break;
 
                 const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
+                // console.log(chunk);
+                const chunkDiv = document.createElement("span");
+                chunkDiv.textContent = chunk;
+                currentResponse.appendChild(chunkDiv);
 
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const data = JSON.parse(line.slice(6));
-
-                        switch (data.type) {
-                            case 'start':
-                                // Optional: Show processing message
-                                currentResponse = document.createElement('div');
-                                currentResponse.className = 'message bot-message';
-                                messagesDiv.appendChild(currentResponse);
-                                break;
-                            case 'chunk':
-                                // Append new token to response
-                                currentResponse.innerHTML += data.content;
-                                break;
-                            case 'end':
-                                // Optional: Handle completion
-                                break;
-                        }
-                    }
-                }
             }
         } catch (error) {
             console.error('Error:', error);

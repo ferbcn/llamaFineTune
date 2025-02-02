@@ -25,7 +25,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-async def stream_text(prompt):
+def stream_text(prompt):
     tok = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
 
@@ -45,21 +45,21 @@ async def stream_text(prompt):
     thread = Thread(target=model.generate, kwargs=generation_kwargs)
     thread.start()
 
-    chunk_coll = ""
+    big_chunk = ""
     for new_text in streamer:
         # Check if the current token is the EOT token
         if any(token == eot_token_id for token in tok(new_text)['input_ids']):
             print("EOT token detected!")
-            if chunk_coll:  # Yield any remaining text before EOT
-                yield chunk_coll
+            if big_chunk:  # Yield any remaining text before EOT
+                yield big_chunk
             break
+
         # add tokens to big_chunk
         print(new_text, end="")
-        chunk_coll += new_text
-        if len(chunk_coll) > 100:
-            yield chunk_coll
-            chunk_coll = ""
-            await asyncio.sleep(0.001)
+        big_chunk += new_text
+        if len(big_chunk) > 100:
+            yield big_chunk
+            big_chunk = ""
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -68,45 +68,12 @@ async def root():
         return f.read()
 
 
-# @app.post("/stream")
-# async def generate(request: Request):
-#     data = await request.json()
-#     user_input = data.get("message", "")
-#     stream_response = stream_text(user_input)
-#     return StreamingResponse(stream_response, media_type="text/plain")
-
-
 @app.post("/stream")
-async def stream(request: Request):
+async def generate(request: Request):
     data = await request.json()
     user_input = data.get("message", "")
-
-    async def event_generator():
-        yield "data: " + json.dumps({
-            "type": "start",
-            "content": f"Processing: {user_input}"
-        }) + "\n\n"
-        
-        async for token in stream_text(user_input):
-            yield "data: " + json.dumps({
-                "type": "chunk",
-                "content": token
-            }) + "\n\n"
-
-        yield "data: " + json.dumps({
-            "type": "end",
-            "content": ""
-        }) + "\n\n"
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'X-Accel-Buffering': 'no'  # Disable buffering in Nginx
-        }
-    )
+    stream_response = stream_text(user_input)
+    return StreamingResponse(stream_response, media_type="text/plain")
 
 
 if __name__ == '__main__':
