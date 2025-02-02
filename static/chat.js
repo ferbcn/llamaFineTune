@@ -46,11 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Use innerHTML instead of textContent to render HTML tags
                 chunkDiv.innerHTML = formattedChunk;
                 currentResponse.appendChild(chunkDiv);
-                
-                // Trigger MathJax to process the new content
-                if (typeof MathJax !== 'undefined') {
-                    MathJax.typesetPromise([currentResponse]);
-                }
             }
         } catch (error) {
             console.error('Error:', error);
