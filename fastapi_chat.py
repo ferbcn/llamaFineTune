@@ -19,7 +19,7 @@ TOKEN = os.getenv('ACCESS_TOKEN')
 # model_name = "HuggingFaceH4/zephyr-7b-beta"
 # model_name = "mistralai/Mistral-7B-Instruct-v0.3"
 # model_name = "fine-tuned-model"
-model_name = "meta-llama/Llama-3.2-1B-Instruct"
+# model_name = "meta-llama/Llama-3.2-1B-Instruct"
 
 models = {"llama3.2": "meta-llama/Llama-3.2-1B-Instruct", "llama3.2-tuned":"fine-tuned-model"}
 
@@ -79,7 +79,7 @@ async def get_models():
 async def generate(request: Request):
     data = await request.json()
     user_input = data.get("message", "")
-    selected_model = data.get("model", model_name)  # Use default if not specified
+    selected_model = data.get("model", "")  # Use default if not specified
     stream_response = stream_text(user_input, selected_model)
     return StreamingResponse(stream_response, media_type="text/plain")
 
