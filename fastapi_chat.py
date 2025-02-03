@@ -14,16 +14,13 @@ TOKEN = os.getenv('ACCESS_TOKEN')
 
 BIG_CHUNK_SIZE = 200
 
-# os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
-# model_name = "HuggingFaceH4/zephyr-7b-beta"
-# model_name = "mistralai/Mistral-7B-Instruct-v0.3"
-# model_name = "fine-tuned-model"
-# model_name = "meta-llama/Llama-3.2-1B-Instruct"
-
 models = {
     "llama3.2": "meta-llama/Llama-3.2-1B-Instruct",
+    "llama3.2-fine-tuned": "fine-tuned-model",  # This should point to your local model directory
     "deepseekR1": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
-    "llama3.2-fine-tuned": "fine-tuned-model"  # This should point to your local model directory
+    "deepseek7B": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+    "deepseekLlama8B": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+    "zephyr7B": "HuggingFaceH4/zephyr-7b-beta",
 }
 
 inference_options = [
@@ -55,12 +52,16 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
     print("Streaming text for model:", model_name, "with max_tokens:", max_tokens, "with temp:", temp, "with top_p:", top_p)
 
     tok = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name)
+    # Load model with float16 precision
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        torch_dtype=torch.float16,
+        device_map="auto"  # This will automatically handle device placement
+    )
 
-    # Move model to GPU if available
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = model.to(device)
-
+    # Get the device that's actually being used
+    device = next(model.parameters()).device
+    
     if model_name == "fine-tuned-model":
         # Format prompt using the tokenizer's chat template
         messages = [
@@ -74,6 +75,7 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
     else:
         formatted_prompt = prompt
 
+    # Use the device for inputs
     inputs = tok([formatted_prompt], return_tensors="pt")
     inputs = {k: v.to(device) for k, v in inputs.items()}
 
