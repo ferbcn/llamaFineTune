@@ -126,6 +126,12 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
     if big_chunk:
         yield big_chunk
 
+    # Clean up
+    del model
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        gc.collect()
+
 
 @app.post("/stream")
 async def generate(request: Request):
