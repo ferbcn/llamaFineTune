@@ -39,7 +39,7 @@ async def get_models():
     return models
 
 
-def generate_text(prompt, model_name):
+def generate_text_fine_tune(prompt, model_name):
     pipe = pipeline("text-generation", model_name, device="cpu", token=TOKEN)
     messages = [
         {
@@ -51,8 +51,9 @@ def generate_text(prompt, model_name):
     return str(pipe(messages, max_new_tokens=128)[0]['generated_text'][-1]['content'])
 
 
-def stream_text(prompt, model_name):
-    print("Streaming text for model:", model_name)
+def stream_text(prompt, model_name, max_tokens):
+    print("Streaming text for model:", model_name, "with max_tokens:", max_tokens)
+
     tok = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
 
@@ -76,7 +77,7 @@ def stream_text(prompt, model_name):
     generation_kwargs = dict(
         inputs, 
         streamer=streamer, 
-        max_new_tokens=512,
+        max_new_tokens=max_tokens,
         temperature=0.7,
         top_p=0.95,
         do_sample=True,
@@ -103,7 +104,7 @@ def stream_text(prompt, model_name):
 
         print(new_text, end="")
         big_chunk += new_text
-        if len(big_chunk) > 200 and "\n" in new_text:
+        if device == "cpu" or len(big_chunk) > 200 and "\n" in new_text:
             yield big_chunk
             big_chunk = ""
     
@@ -116,9 +117,10 @@ def stream_text(prompt, model_name):
 async def generate(request: Request):
     data = await request.json()
     user_input = data.get("message", "")
-    selected_model = data.get("model", "")  # Use default if not specified
-    # stream_response = stream_text(user_input, selected_model)
-    stream_response = generate_text(user_input, selected_model)
+    selected_model = data.get("model", "")
+    max_tokens = data.get("tokens", "")
+    # stream_response = generate_text_fine_tuned(user_input, selected_model)
+    stream_response = stream_text(user_input, selected_model, max_tokens)
     return StreamingResponse(stream_response, media_type="text/plain")
 
 

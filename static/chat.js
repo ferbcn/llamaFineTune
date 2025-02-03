@@ -5,6 +5,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const messageInput = document.getElementById('message-input');
     const modelSelector = document.getElementById('model-selector');
 
+    // Add slider event listener
+    const tokenSlider = document.getElementById('token-slider');
+    const tokenValue = document.getElementById('token-value');
+    
+    tokenSlider.addEventListener('input', function() {
+        tokenValue.textContent = this.value;
+    });
+
+
     // Fetch available models when page loads
     async function loadModels() {
         try {
@@ -39,6 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
         responseDiv.className = 'message assistant';
         chatContainer.appendChild(responseDiv);
 
+        // get token count
+        const tokenCount = parseInt(document.getElementById('token-slider').value);
+
         try {
             // Modified fetch call to include selected model
             const response = await fetch('/stream', {
@@ -48,7 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     message,
-                    model: modelSelector.value
+                    model: modelSelector.value,
+                    tokens: tokenCount
                 })
             });
 
@@ -101,6 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const input = document.getElementById('message-input');
         const message = messageInput.value.trim();
+
+
 
         if (message) {
             // Create user message element
