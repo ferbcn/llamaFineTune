@@ -104,6 +104,7 @@ def stream_text(prompt, model_name, max_tokens):
             clean_token = new_token.split("<|eot_id|>")[0].strip()
             big_chunk += clean_token
             yield big_chunk
+            big_chunk = ""
             break
 
         big_chunk += new_token
