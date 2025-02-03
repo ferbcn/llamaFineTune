@@ -116,10 +116,10 @@ def stream_text(prompt, model_name, max_tokens):
             big_chunk += new_token
             yield big_chunk
             big_chunk = ""
-    #
-    # # Yield any remaining text
-    # if big_chunk:
-    #     yield big_chunk
+
+    # Yield any remaining text
+    if big_chunk:
+        yield big_chunk
 
 
 @app.post("/stream")
