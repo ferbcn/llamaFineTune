@@ -22,6 +22,7 @@ BIG_CHUNK_SIZE = 200
 
 models = {
     "llama3.2": "meta-llama/Llama-3.2-1B-Instruct",
+    "deepseekR1": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
     "llama3.2-fine-tuned": "fine-tuned-model"  # This should point to your local model directory
 }
 
