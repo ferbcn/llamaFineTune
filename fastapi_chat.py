@@ -95,7 +95,7 @@ def stream_text(prompt, model_name, max_tokens):
     big_chunk = ""
 
     for new_token in streamer:
-        print(new_token)
+        print(new_token, end="")
         # For fine-tuned model, look for the end of the assistant's response
         # Check for various end tokens and clean up the text
         if model_name == "fine-tuned-model":
