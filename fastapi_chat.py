@@ -57,16 +57,20 @@ def stream_text(prompt, model_name, max_tokens):
     tok = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
 
-    # Get the EOT token ID if it exists in the tokenizer
-    eot_token_id = tok.eos_token_id
-
     # Move model to GPU if available
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = model.to(device)
 
     if model_name == "fine-tuned-model":
-        # Format prompt similar to how it was formatted during fine-tuning
-        formatted_prompt = f"### Human: {prompt}\n\n### Assistant:"
+        # Format prompt using the tokenizer's chat template
+        messages = [
+            {"role": "user", "content": prompt}
+        ]
+        formatted_prompt = tok.apply_chat_template(
+            messages, 
+            tokenize=False,
+            add_generation_prompt=True
+        )
     else:
         formatted_prompt = prompt
 
@@ -90,20 +94,21 @@ def stream_text(prompt, model_name, max_tokens):
 
     big_chunk = ""
     for new_text in streamer:
-        # For fine-tuned model, check for end of response markers
+        # For fine-tuned model, look for the end of the assistant's response
+        big_chunk += new_text
+
         if model_name == "fine-tuned-model":
-            if "### Human:" in new_text or "### Assistant:" in new_text:
+            if tok.eos_token_id in tok(new_text)['input_ids'] or "<|eot_id|>" in new_text or "[/INST]" in new_text:  # Common end tokens
                 if big_chunk:
                     yield big_chunk
                 break
         # For other models, check EOT token
-        elif any(token == eot_token_id for token in tok(new_text)['input_ids']):
+        elif tok.eos_token_id in tok(new_text)['input_ids']:
             if big_chunk:
                 yield big_chunk
             break
 
         print(new_text, end="")
-        big_chunk += new_text
         if device == "cpu" or len(big_chunk) > 200 and "\n" in new_text:
             yield big_chunk
             big_chunk = ""
