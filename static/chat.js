@@ -87,8 +87,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const chunkDiv = document.createElement("span");
 
                 // Handle Markdown-style formatting
-                // Order matters: handle triple before double before single
+                // Order matters: handle more specific patterns first
                 let formattedChunk = chunk
+                    // Headers: ## Text
+                    .replace(/##\s+([^\n]+)/g, '<h2>$1</h2>')
+                    // LaTeX-style boxed content: \boxed{text}
+                    .replace(/\\\boxed{([^}]+)}/g, '<div class="boxed">$1</div>')
                     // Bold-italic: ***text***
                     .replace(/\*\*\*([^\*]+)\*\*\*/g, '<strong><em>$1</em></strong>')
                     // Bold: **text**
