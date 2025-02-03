@@ -134,6 +134,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!currentResponse) {
                     currentResponse = document.createElement('div');
                     currentResponse.className = 'message bot-message';
+                    
+                    // Add model indicator for bot response
+                    const modelIndicator = document.createElement('div');
+                    modelIndicator.className = 'model-indicator';
+                    modelIndicator.textContent = `Response from: ${modelSelector.value}`;
+                    currentResponse.appendChild(modelIndicator);
+                    
                     messagesDiv.appendChild(currentResponse);
                 }
 
@@ -171,15 +178,24 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const input = document.getElementById('message-input');
         const message = messageInput.value.trim();
-
-
-
+        
         if (message) {
             // Create user message element
             const userDiv = document.createElement('div');
             userDiv.className = 'message user-message';
-            // Convert newlines to <br> tags for user messages too
-            userDiv.innerHTML = message.replace(/\n/g, '<br>');
+            
+            // Create model indicator
+            const modelIndicator = document.createElement('div');
+            modelIndicator.className = 'model-indicator';
+            modelIndicator.textContent = `Using model: ${modelSelector.value}`;
+            
+            // Add message content with newlines converted to <br>
+            const messageContent = document.createElement('div');
+            messageContent.innerHTML = message.replace(/\n/g, '<br>');
+            
+            // Append both to the user message div
+            userDiv.appendChild(modelIndicator);
+            userDiv.appendChild(messageContent);
             messagesDiv.appendChild(userDiv);
 
             // Send message and handle response
