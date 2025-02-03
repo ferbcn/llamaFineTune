@@ -107,7 +107,7 @@ def stream_text(prompt, model_name, max_tokens):
             break
 
         if "<|eot_id|>" in new_token:
-            continue
+            break
 
         big_chunk += new_token
         full_response += new_token
