@@ -1,4 +1,6 @@
 import os
+
+import torch
 from transformers import pipeline
 from dotenv import load_dotenv
 import sys
@@ -6,6 +8,8 @@ import sys
 load_dotenv()
 
 TOKEN = os.getenv('ACCESS_TOKEN')
+
+torch.backends.cudnn.allow_tf32 = False
 
 # Define the available model names
 model_names = {
@@ -18,7 +22,7 @@ model_names = {
 }
 
 def generate_text(prompt, model_name):
-    pipe = pipeline("text-generation", model_name, device="cuda", token=TOKEN)
+    pipe = pipeline("text-generation", model_name, device="cpu", token=TOKEN)
     messages = [
         {
             "role": "system",
