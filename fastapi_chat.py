@@ -100,7 +100,7 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
         # For fine-tuned model, look for the end of the assistant's response
         # Check for various end tokens and clean up the text
         if tok.eos_token_id in tok(new_token)['input_ids'] or "<|eot_id|>" in new_token or "<｜end▁of▁sentence｜>" in new_token:
-            clean_token = new_token.split("<|eot_id|>")[0].strip()
+            clean_token = new_token.split("<|eot_id|>")[0].strip().split("<｜end▁of▁sentence｜>>")[0].strip()
             big_chunk += clean_token
             yield big_chunk
             big_chunk = ""
