@@ -7,17 +7,14 @@
 </head>
 <body>
     <div id="chat-container">
-        <h3>Chat-Bot</h3>
+        <h2>LLM-Chat</h2>
         <div class="select-container">
             <select id="model-selector">
                 <option value="">Loading models...</option>
             </select>
-
-            <div class="token-selector">
-                <label for="token-slider">Max Tokens: <span id="token-value">256</span></label>
-                <input type="range" id="token-slider" min="16" max="1024" value="256" step="16">
-            </div>
-
+        </div>
+        <div class="inference-options-container">
+            <!-- Sliders will be inserted here programmatically -->
         </div>
         <div id="messages"></div>
         <form id="message-form">

@@ -5,15 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const messageInput = document.getElementById('message-input');
     const modelSelector = document.getElementById('model-selector');
 
-    // Add slider event listener
-    const tokenSlider = document.getElementById('token-slider');
-    const tokenValue = document.getElementById('token-value');
-    
-    tokenSlider.addEventListener('input', function() {
-        tokenValue.textContent = this.value;
-    });
-
-
     // Fetch available models when page loads
     async function loadModels() {
         try {
@@ -39,6 +30,61 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load models when page loads
     loadModels();
 
+    // Add this new function after loadModels()
+    async function loadOptions() {
+        try {
+            const response = await fetch('/get-options');
+            const options = await response.json();
+
+            // Create inference options container
+            const selectContainer = document.querySelector('.inference-options-container');
+
+            // Create sliders for each option
+            options.forEach(option => {
+                const sliderContainer = document.createElement('div');
+                sliderContainer.className = 'slider-container';
+                
+                // Create label and span
+                const label = document.createElement('label');
+                label.htmlFor = option.slider_id;
+
+                const span = document.createElement('span');
+                span.id = option.label_id;
+                span.classList.add("slider-value");
+
+                span.textContent = option.value;
+                label.textContent = option.label + ": ";
+                label.appendChild(span);
+                
+                // Create slider
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.id = option.slider_id;
+                slider.min = option.min;
+                slider.max = option.max;
+                slider.step = option.step;
+                slider.value = option.value; // Set the initial value before adding to DOM
+                
+                // Add event listener to slider
+                slider.addEventListener('input', function() {
+                    span.textContent = this.value;
+                });
+                
+                // Append elements
+                sliderContainer.appendChild(label);
+                sliderContainer.appendChild(slider);
+                selectContainer.appendChild(sliderContainer);
+            });
+            
+        } catch (error) {
+            console.error('Error loading options:', error);
+        }
+    }
+
+    // Update the initialization section to call both functions
+    loadModels();
+    loadOptions();
+
     async function sendMessage(message) {
         // Get or create message container
         const chatContainer = document.getElementById('chat-container');
@@ -52,7 +98,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const tokenCount = parseInt(document.getElementById('token-slider').value);
 
         try {
-            // Modified fetch call to include selected model
+            // Get all slider values
+            const sliderValues = {};
+            document.querySelectorAll('.slider-container input[type="range"]').forEach(slider => {
+                const id = slider.id.replace('-slider', '');
+                // Convert slider values to numbers and handle floating point values
+                sliderValues[id] = Number(slider.value);
+            });
+
             const response = await fetch('/stream', {
                 method: 'POST',
                 headers: {
@@ -61,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     message,
                     model: modelSelector.value,
-                    tokens: tokenCount
+                    ...sliderValues
                 })
             });
 

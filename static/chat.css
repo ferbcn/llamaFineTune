@@ -75,10 +75,15 @@ button {
     font-size: 14px;
 }
 
-.token-selector {
+.inference-options-container{
+    display: flex;
+    flex-direction: row;
+    font-size: 12px;
+}
+
+.slider-container {
     padding: 0 10px;
     text-align: center;
-    /*background-color: #f5f5f5;*/
 }
 
 .token-selector label {
@@ -93,6 +98,21 @@ button {
     margin: 0 auto;
 }
 
-#token-value{
+.slider-value{
     font-weight: bold;
+}
+
+h2 {
+    font-size: 1.2em;
+    margin: 1em 0 0.5em 0;
+    color: #2c3e50;
+}
+
+.boxed {
+    border: 2px solid #2c3e50;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    display: inline-block;
 }

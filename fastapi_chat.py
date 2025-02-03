@@ -25,6 +25,11 @@ models = {
     "llama3.2-fine-tuned": "fine-tuned-model"  # This should point to your local model directory
 }
 
+inference_options = [
+    {"label": "Max Tokens", "label_id": "token-value", "slider_id": "token-slider", "min":16, "max":1024, "value":256, "step":16},
+    {"label": "Temperature", "label_id": "temp-value", "slider_id": "temp-slider", "min":0.1, "max":1.0, "value":0.7, "step":0.05},
+    {"label": "Top-P", "label_id": "topp-value", "slider_id": "topp-slider", "min":0.9, "max":0.99, "value":0.95, "step":0.01}]
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -40,20 +45,13 @@ async def get_models():
     return models
 
 
-def generate_text_fine_tune(prompt, model_name):
-    pipe = pipeline("text-generation", model_name, device="cpu", token=TOKEN)
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a friendly chatbot that gives answers",
-        },
-        {"role": "user", "content": prompt},
-    ]
-    return str(pipe(messages, max_new_tokens=128)[0]['generated_text'][-1]['content'])
+@app.get("/get-options")
+async def get_options():
+    return inference_options
 
 
-def stream_text(prompt, model_name, max_tokens):
-    print("Streaming text for model:", model_name, "with max_tokens:", max_tokens)
+def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
+    print("Streaming text for model:", model_name, "with max_tokens:", max_tokens, "with temp:", temp, "with top_p:", top_p)
 
     tok = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
@@ -83,8 +81,8 @@ def stream_text(prompt, model_name, max_tokens):
         inputs, 
         streamer=streamer, 
         max_new_tokens=max_tokens,
-        temperature=0.7,
-        top_p=0.95,
+        temperature=temp,
+        top_p=top_p,
         do_sample=True,
         pad_token_id=tok.eos_token_id,
         eos_token_id=tok.eos_token_id
@@ -97,7 +95,7 @@ def stream_text(prompt, model_name, max_tokens):
     big_chunk = ""
 
     for new_token in streamer:
-        print(new_token)
+        # print(new_token)
         # For fine-tuned model, look for the end of the assistant's response
         # Check for various end tokens and clean up the text
         if tok.eos_token_id in tok(new_token)['input_ids'] or "<|eot_id|>" in new_token:
@@ -123,11 +121,14 @@ def stream_text(prompt, model_name, max_tokens):
 @app.post("/stream")
 async def generate(request: Request):
     data = await request.json()
+    print(data)
     user_input = data.get("message", "")
     selected_model = data.get("model", "")
-    max_tokens = data.get("tokens", "")
-    # stream_response = generate_text_fine_tuned(user_input, selected_model)
-    stream_response = stream_text(user_input, selected_model, max_tokens)
+    max_tokens = data.get("token", "")
+    temp = data.get("temp", "")
+    top_p = data.get("topp", "")
+    print("Post data:", user_input, selected_model, max_tokens, temp, top_p)
+    stream_response = stream_text(user_input, selected_model, max_tokens=max_tokens, temp=temp, top_p=top_p)
     return StreamingResponse(stream_response, media_type="text/plain")
 
 
