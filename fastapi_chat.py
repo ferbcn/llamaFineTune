@@ -103,11 +103,12 @@ def stream_text(prompt, model_name, max_tokens):
         if model_name == "fine-tuned-model":
             if "<|eot_id|>" in new_token:
                 # Clean up the text by removing end tokens and any repeated content
-                clean_token = new_token.split("<|eot_id|>")[0].strip()
-                print("last token: ", clean_token)
-                big_chunk += clean_token
-                yield big_chunk
-                break
+                # clean_token = new_token.split("<|eot_id|>")[0].strip()
+                # # print("last token: ", clean_token)
+                # # big_chunk += clean_token
+                # # yield big_chunk
+                # # break
+                continue
 
         elif tok.eos_token_id in tok(new_token)['input_ids']:
             clean_token = new_token.split("<|eot_id|>")[0].strip()
