@@ -22,7 +22,11 @@ model_names = {
 }
 
 def generate_text(prompt, model_name):
-    pipe = pipeline("text-generation", model_name, device="cpu", token=TOKEN)
+    if torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+    pipe = pipeline("text-generation", model_name, device=device, token=TOKEN)
     messages = [
         {
             "role": "system",
