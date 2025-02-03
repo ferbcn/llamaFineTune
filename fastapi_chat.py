@@ -19,7 +19,6 @@ TOKEN = os.getenv('ACCESS_TOKEN')
 # model_name = "meta-llama/Llama-3.2-1B-Instruct"
 
 models = {
-    "mistral7B": "mistralai/Mistral-7B-Instruct-v0.3",
     "llama3.2": "meta-llama/Llama-3.2-1B-Instruct",
     "llama3.2-fine-tuned": "fine-tuned-model"  # This should point to your local model directory
 }
@@ -93,29 +92,34 @@ def stream_text(prompt, model_name, max_tokens):
     thread.start()
 
     big_chunk = ""
-    for new_text in streamer:
-        # For fine-tuned model, look for the end of the assistant's response
-        big_chunk += new_text
 
+    for new_token in streamer:
+        print(new_token)
+        # For fine-tuned model, look for the end of the assistant's response
+        # Check for various end tokens and clean up the text
         if model_name == "fine-tuned-model":
-            if tok.eos_token_id in tok(new_text)['input_ids'] or "<|eot_id|>" in new_text or "[/INST]" in new_text:  # Common end tokens
-                if big_chunk:
-                    yield big_chunk
-                break
-        # For other models, check EOT token
-        elif tok.eos_token_id in tok(new_text)['input_ids']:
-            if big_chunk:
+            if "<|eot_id|>" in new_token:
+                # Clean up the text by removing end tokens and any repeated content
+                clean_token = new_token.split("<|eot_id|>")[0].strip()
+                big_chunk += clean_token
                 yield big_chunk
+                break
+
+        elif tok.eos_token_id in tok(new_token)['input_ids']:
+            clean_token = new_token.split("<|eot_id|>")[0].strip()
+            big_chunk += clean_token
+            yield big_chunk
             break
 
-        print(new_text, end="")
-        if device == "cpu" or len(big_chunk) > 200 and "\n" in new_text:
+        # yielding every token will break formatting at the frontend
+        if device == "cpu" or len(big_chunk) > 200 and "\n" in new_token:
+            big_chunk += new_token
             yield big_chunk
             big_chunk = ""
-    
-    # Yield any remaining text
-    if big_chunk:
-        yield big_chunk
+    #
+    # # Yield any remaining text
+    # if big_chunk:
+    #     yield big_chunk
 
 
 @app.post("/stream")
