@@ -91,6 +91,7 @@ def stream_text(prompt, model_name, max_tokens):
     thread = Thread(target=model.generate, kwargs=generation_kwargs)
     thread.start()
 
+    full_response = ""
     big_chunk = ""
 
     for new_token in streamer:
@@ -113,9 +114,10 @@ def stream_text(prompt, model_name, max_tokens):
 
         else:
             big_chunk += new_token
+            full_response += new_token
 
         # yielding every token will break formatting at the frontend
-        if device == "cpu" or len(big_chunk) > 200 and "\n" in new_token:
+        if device == "cpu" or len(full_response) < 50 or len(big_chunk) > 200 and "\n" in new_token:
             yield big_chunk
             big_chunk = ""
 
