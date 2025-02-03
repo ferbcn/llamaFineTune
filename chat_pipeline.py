@@ -11,9 +11,9 @@ TOKEN = os.getenv('ACCESS_TOKEN')
 
 # model_name = "HuggingFaceH4/zephyr-7b-beta"
 # model_name = "fine-tuned-model"
-# model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 # model_name = "meta-llama/Llama-3.2-1B-Instruct"
-model_name = "mistralai/Mistral-7B-Instruct-v0.3"
+# model_name = "mistralai/Mistral-7B-Instruct-v0.3"
+model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 
 
 def generate_text(prompt):
