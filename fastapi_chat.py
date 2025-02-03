@@ -100,21 +100,14 @@ def stream_text(prompt, model_name, max_tokens):
         print(new_token, end="")
         # For fine-tuned model, look for the end of the assistant's response
         # Check for various end tokens and clean up the text
-        if model_name == "fine-tuned-model":
-            if "<|eot_id|>" in new_token:
-                # Clean up the text by removing end tokens and any repeated content
-                # clean_token = new_token.split("<|eot_id|>")[0].strip()
-                # # print("last token: ", clean_token)
-                # # big_chunk += clean_token
-                # # yield big_chunk
-                # # break
-                continue
-
-        elif tok.eos_token_id in tok(new_token)['input_ids']:
+        if tok.eos_token_id in tok(new_token)['input_ids']:
             clean_token = new_token.split("<|eot_id|>")[0].strip()
             big_chunk += clean_token
             yield big_chunk
             break
+
+        if "<|eot_id|>" in new_token:
+            continue
 
         big_chunk += new_token
         full_response += new_token
