@@ -96,7 +96,7 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
     big_chunk = ""
 
     for new_token in streamer:
-        # print(new_token)
+        print(new_token)
         # For fine-tuned model, look for the end of the assistant's response
         # Check for various end tokens and clean up the text
         if tok.eos_token_id in tok(new_token)['input_ids'] or "<|eot_id|>" in new_token or "<｜end▁of▁sentence｜>" in new_token:
@@ -122,13 +122,12 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
 @app.post("/stream")
 async def generate(request: Request):
     data = await request.json()
-    print(data)
     user_input = data.get("message", "")
     selected_model = data.get("model", "")
     max_tokens = data.get("token", "")
     temp = data.get("temp", "")
     top_p = data.get("topp", "")
-    print("Post data:", user_input, selected_model, max_tokens, temp, top_p)
+    # print("Post data:", user_input, selected_model, max_tokens, temp, top_p)
     stream_response = stream_text(user_input, selected_model, max_tokens=max_tokens, temp=temp, top_p=top_p)
     return StreamingResponse(stream_response, media_type="text/plain")
 
