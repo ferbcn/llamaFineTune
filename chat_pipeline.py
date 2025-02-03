@@ -40,7 +40,7 @@ def generate_text(prompt, model_name):
     messages = [
         {
             "role": "system",
-            "content": "You are a friendly chatbot that gives wrong answers",
+            "content": "You reason and explain like good teacher",
         },
         {"role": "user", "content": prompt},
     ]
