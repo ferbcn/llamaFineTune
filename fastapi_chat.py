@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from starlette.staticfiles import StaticFiles
+import gc
 
 load_dotenv()
 
@@ -50,6 +51,11 @@ async def get_options():
 
 def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
     print("Streaming text for model:", model_name, "with max_tokens:", max_tokens, "with temp:", temp, "with top_p:", top_p)
+
+    # Clean up GPU memory
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        gc.collect()
 
     tok = AutoTokenizer.from_pretrained(model_name)
     # Load model with float16 precision
