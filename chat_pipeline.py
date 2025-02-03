@@ -9,7 +9,6 @@ load_dotenv()
 
 TOKEN = os.getenv('ACCESS_TOKEN')
 
-torch.backends.cudnn.allow_tf32 = False
 
 # Define the available model names
 model_names = {
@@ -24,9 +23,20 @@ model_names = {
 def generate_text(prompt, model_name):
     if torch.cuda.is_available():
         device = "cuda"
+        # Use FP16 precision for larger models
+        torch_dtype = torch.float16
     else:
         device = "cpu"
-    pipe = pipeline("text-generation", model_name, device=device, token=TOKEN)
+        torch_dtype = torch.float32
+        
+    pipe = pipeline(
+        "text-generation",
+        model_name,
+        device=device,
+        token=TOKEN,
+        torch_dtype=torch_dtype
+    )
+    
     messages = [
         {
             "role": "system",
