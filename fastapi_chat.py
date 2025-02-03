@@ -111,9 +111,11 @@ def stream_text(prompt, model_name, max_tokens):
             yield big_chunk
             break
 
+        else:
+            big_chunk += new_token
+
         # yielding every token will break formatting at the frontend
         if device == "cpu" or len(big_chunk) > 200 and "\n" in new_token:
-            big_chunk += new_token
             yield big_chunk
             big_chunk = ""
 
