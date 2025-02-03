@@ -12,6 +12,8 @@ load_dotenv()
 
 TOKEN = os.getenv('ACCESS_TOKEN')
 
+BIG_CHUNK_SIZE = 200
+
 # os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 # model_name = "HuggingFaceH4/zephyr-7b-beta"
 # model_name = "mistralai/Mistral-7B-Instruct-v0.3"
@@ -116,7 +118,7 @@ def stream_text(prompt, model_name, max_tokens):
         full_response += new_token
 
         # yielding every token will break formatting at the frontend
-        if device == "cpu" or len(full_response) < 50 or len(big_chunk) > 200 and "\n" in new_token:
+        if device == "cpu" or len(full_response) < BIG_CHUNK_SIZE or len(big_chunk) > BIG_CHUNK_SIZE and "\n" in new_token:
             yield big_chunk
             big_chunk = ""
 
