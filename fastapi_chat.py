@@ -58,11 +58,15 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
         gc.collect()
 
     tok = AutoTokenizer.from_pretrained(model_name)
-    # Load model with float16 precision
+    # Load model with optimizations for memory efficiency
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        # torch_dtype=torch.float16,
-        device_map="auto"  # This will automatically handle device placement
+        torch_dtype=torch.float16,  # Use half precision
+        device_map="auto",  # Let transformers handle device placement
+        low_cpu_mem_usage=True,  # Optimize CPU memory usage during loading
+        load_in_4bit=True,  # Enable 4-bit quantization
+        bnb_4bit_compute_dtype=torch.float16,  # Use float16 for 4-bit computation
+        bnb_4bit_quant_type="nf4",  # Use normalized float4 quantization
     )
 
     # Get the device that's actually being used
@@ -108,8 +112,8 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
         print(new_token)
         # For fine-tuned model, look for the end of the assistant's response
         # Check for various end tokens and clean up the text
-        if tok.eos_token_id in tok(new_token)['input_ids'] or "<|eot_id|>" in new_token or "<｜end▁of▁sentence｜>" in new_token:
-            clean_token = new_token.split("<|eot_id|>")[0].strip().split("<｜end▁of▁sentence｜>>")[0].strip()
+        if tok.eos_token_id in tok(new_token)['input_ids'] or "<|eot_id|>" in new_token or " " in new_token:
+            clean_token = new_token.split("<|eot_id|>")[0].strip().split(">")[0].strip()
             big_chunk += clean_token
             yield big_chunk
             big_chunk = ""
