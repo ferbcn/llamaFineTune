@@ -59,14 +59,11 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
 
     tok = AutoTokenizer.from_pretrained(model_name)
     # Load model with optimizations for memory efficiency
+    # Load model with float16 precision
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.float16,  # Use half precision
-        device_map="auto",  # Let transformers handle device placement
-        low_cpu_mem_usage=True,  # Optimize CPU memory usage during loading
-        load_in_4bit=True,  # Enable 4-bit quantization
-        bnb_4bit_compute_dtype=torch.float16,  # Use float16 for 4-bit computation
-        bnb_4bit_quant_type="nf4",  # Use normalized float4 quantization
+        torch_dtype=torch.float16,
+        device_map="auto"  # This will automatically handle device placement
     )
 
     # Get the device that's actually being used
