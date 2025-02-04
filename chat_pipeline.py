@@ -17,7 +17,8 @@ model_names = {
     "3": "mistralai/Mistral-7B-Instruct-v0.3",
     "4": "HuggingFaceH4/zephyr-7b-beta",
     "5": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
-    "6": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+    "6": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+    "7": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
 }
 
 def generate_text(prompt, model_name):
