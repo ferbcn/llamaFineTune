@@ -63,7 +63,9 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         # torch_dtype=torch.float16, # inference gets unusably slow with fp16, why?
-        device_map="auto"  # This will automatically handle device placement
+        device_map="auto",  # This will automatically handle device placement
+        torch_compile=True,
+        max_split_size_mb=256  # Add this parameter to prevent memory fragmentation
     )
 
     # Get the device that's actually being used
@@ -95,7 +97,6 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
         temperature=temp,
         top_p=top_p,
         do_sample=True,
-        pad_token_id=tok.eos_token_id,
         eos_token_id=tok.eos_token_id
     )
     
