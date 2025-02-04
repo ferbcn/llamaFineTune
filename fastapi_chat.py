@@ -64,7 +64,6 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
         model_name,
         # torch_dtype=torch.float16, # inference gets unusably slow with fp16, why?
         device_map="cuda",  # This will automatically handle device placement
-        torch_compile=True,
         max_split_size_mb=256  # Add this parameter to prevent memory fragmentation
     )
 
