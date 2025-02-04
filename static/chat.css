@@ -78,12 +78,16 @@ button {
 .inference-options-container{
     display: flex;
     flex-direction: row;
+    justify-content: center;
     font-size: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 5px;
 }
 
 .slider-container {
     padding: 0 10px;
     text-align: center;
+    display: flex;
 }
 
 .token-selector label {
