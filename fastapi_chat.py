@@ -67,6 +67,7 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
 
     # Get the device that's actually being used
     device = next(model.parameters()).device
+    print("Using device:", device)
     
     if model_name == "fine-tuned-model":
         # Format prompt using the tokenizer's chat template
