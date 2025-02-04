@@ -62,7 +62,7 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
     # Load model with float16 precision
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.float16,
+        # torch_dtype=torch.float16, # inference gets unusably slow with fp16, why?
         device_map="auto"  # This will automatically handle device placement
     )
 
