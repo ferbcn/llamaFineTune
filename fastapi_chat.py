@@ -57,13 +57,13 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
         torch.cuda.empty_cache()
         gc.collect()
 
-    tok = AutoTokenizer.from_pretrained(model_name)
+    # Use token for both tokenizer and model loading
+    tok = AutoTokenizer.from_pretrained(model_name, token=TOKEN)
     # Load model with optimizations for memory efficiency
-    # Load model with float16 precision
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        # torch_dtype=torch.float16, # inference gets unusably slow with fp16, why?
-        device_map="cuda",  # This will automatically handle device placement
+        token=TOKEN,  # Add token here
+        device_map="cuda",
     )
 
     # Get the device that's actually being used
