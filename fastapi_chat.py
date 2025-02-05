@@ -119,7 +119,7 @@ def stream_text(prompt, model_name, max_tokens=256, temp=0.7, top_p=0.95):
         full_response += new_token
 
         # yielding every token will break formatting at the frontend
-        if device == "cpu" or len(full_response) < BIG_CHUNK_SIZE or len(big_chunk) > BIG_CHUNK_SIZE and "\n" in new_token:
+        if device == "cpu" or len(big_chunk) > BIG_CHUNK_SIZE and "\n" in new_token:
             yield big_chunk
             big_chunk = ""
 

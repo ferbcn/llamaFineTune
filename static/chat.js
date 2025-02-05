@@ -184,17 +184,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const userDiv = document.createElement('div');
             userDiv.className = 'message user-message';
             
-            // Create model indicator
-            const modelIndicator = document.createElement('div');
-            modelIndicator.className = 'model-indicator';
-            modelIndicator.textContent = `Using model: ${modelSelector.value}`;
+            // // Create model indicator
+            // const modelIndicator = document.createElement('div');
+            // modelIndicator.className = 'model-indicator';
+            // modelIndicator.textContent = `Using model: ${modelSelector.value}`;
             
             // Add message content with newlines converted to <br>
             const messageContent = document.createElement('div');
             messageContent.innerHTML = message.replace(/\n/g, '<br>');
             
             // Append both to the user message div
-            userDiv.appendChild(modelIndicator);
+            // userDiv.appendChild(modelIndicator);
             userDiv.appendChild(messageContent);
             messagesDiv.appendChild(userDiv);
 
