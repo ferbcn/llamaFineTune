@@ -1,3 +1,5 @@
 torch
 transformers
 python-dotenv
+fastapi[standard]
+uvicorn
